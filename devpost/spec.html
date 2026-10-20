@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Doodle to ASCII - Technical Spec</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #171717;
+      background: #f5f5f2;
+      --ink: #171717;
+      --paper: #fff;
+      --line: #b9b9b4;
+      --soft: #e9e9e5;
+      --muted: #555550;
+      --mono: "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background-color: #f5f5f2;
+      background-image: radial-gradient(#d7d7d1 0.65px, transparent 0.65px);
+      background-size: 13px 13px;
+    }
+
+    .page {
+      width: min(100% - 36px, 1060px);
+      margin: 28px auto 64px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--ink);
+      font: 12px var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .status { display: inline-flex; align-items: center; gap: 8px; }
+    .status::before { content: ""; width: 9px; height: 9px; display: inline-block; background: var(--ink); }
+    main { padding: 48px; }
+    .eyebrow { margin: 0 0 12px; color: var(--muted); font: 12px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    h1 {
+      max-width: 780px;
+      margin: 0;
+      font-size: 62px;
+      line-height: 0.98;
+      font-weight: 500;
+    }
+
+    .dek { max-width: 720px; margin: 18px 0 0; font-size: 19px; line-height: 1.5; }
+    .rule { height: 1px; margin: 30px 0; background: var(--ink); }
+    h2 { margin: 0 0 16px; font-size: 24px; font-weight: 500; }
+    h3 { margin: 0 0 8px; font-size: 18px; font-weight: 500; }
+    p { margin: 0; line-height: 1.55; }
+    a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    code, pre, .mono { font-family: var(--mono); }
+    .plain { max-width: 78ch; font-size: 17px; }
+    .plain p + p { margin-top: 12px; }
+
+    .diagram-wrap { padding: 14px; border: 1px solid var(--ink); background: #fbfbf9; }
+    .diagram { display: block; width: 100%; height: auto; }
+    .diagram text { fill: var(--ink); }
+    .diagram .label { font: 14px var(--mono); }
+    .diagram .small { font: 12px var(--mono); fill: var(--muted); }
+    .diagram .node { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+    .diagram .flow { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+    .diagram .arrow { fill: var(--ink); }
+    .flow-text { display: none; }
+    .caption { margin-top: 10px; color: var(--muted); font: 12px/1.6 var(--mono); }
+
+    .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 14px; }
+    .section-head .eyebrow { margin-bottom: 6px; }
+    .section-head h2 { margin: 0; }
+    .tag { display: inline-block; padding: 4px 7px; border: 1px solid var(--line); font: 10px var(--mono); text-transform: uppercase; }
+    .disclosure-list { border-top: 1px solid var(--ink); }
+    details { border-bottom: 1px solid var(--ink); }
+    summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 17px 0;
+      cursor: pointer;
+      list-style: none;
+      font-size: 20px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; font: 22px var(--mono); }
+    details[open] summary::after { content: "-"; }
+    summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+    .detail-content { padding: 0 0 20px; color: #30302d; line-height: 1.55; }
+    .detail-content p + p { margin-top: 10px; }
+    .detail-content ul { margin: 9px 0 0; padding-left: 22px; }
+    .detail-content li + li { margin-top: 7px; }
+    .ref { margin-top: 12px; color: var(--muted); font: 11px var(--mono); }
+    .boundary { padding: 16px 0; border-top: 1px solid var(--line); }
+    .boundary p + p { margin-top: 9px; }
+    .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .col { padding: 16px 0; border-top: 1px solid var(--line); }
+
+    .runbox {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 18px;
+      border: 1px solid var(--ink);
+      background: #fbfbf9;
+    }
+
+    .runbox pre {
+      margin: 12px 0;
+      padding: 12px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      font-size: 14px;
+    }
+
+    .run-meta { color: var(--muted); font: 11px/1.6 var(--mono); text-align: right; }
+    .tree {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #fbfbf9;
+      font-size: 13px;
+      line-height: 1.65;
+      white-space: pre;
+    }
+
+    .doclinks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font: 12px var(--mono); }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 13px 20px;
+      border-top: 1px solid var(--ink);
+      color: var(--muted);
+      font: 11px var(--mono);
+    }
+
+    @media (max-width: 700px) {
+      .page { width: min(100% - 22px, 1060px); margin: 12px auto 28px; box-shadow: 4px 4px 0 var(--ink); }
+      header { padding: 12px; font-size: 10px; }
+      main { padding: 24px 18px; }
+      h1 { font-size: 42px; }
+      .diagram { display: none; }
+      .flow-text { display: block; font: 12px/1.7 var(--mono); }
+      .cols { grid-template-columns: 1fr; gap: 0; }
+      .runbox { grid-template-columns: 1fr; }
+      .run-meta { text-align: left; }
+      footer { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <span>Devpost Learn / Technical Spec</span>
+      <span class="status">Approved</span>
+    </header>
+
+    <main>
+      <p class="eyebrow">Implementation blueprint / 03</p>
+      <h1>Doodle to ASCII</h1>
+      <p class="dek">A local, responsive browser app: draw, convert the marks into a compact `#` image, and download it as text.</p>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="plain-title">
+        <p class="eyebrow">How this works</p>
+        <h2 id="plain-title">The browser does the work</h2>
+        <div class="plain">
+          <p>The page is made of HTML, CSS, and JavaScript. The browser provides a square drawing surface called a canvas. It holds the user's marks only while the page is open.</p>
+          <p>When the user submits, JavaScript checks the drawing, turns it into a grid of `#` marks and spaces, and shows the result. The browser packages that text into a `.txt` download. Python serves the page locally; it does not process the drawing.</p>
+        </div>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="flow-title">
+        <p class="eyebrow">Data flow / no external service</p>
+        <h2 id="flow-title">From pointer to text file</h2>
+        <div class="diagram-wrap">
+          <svg class="diagram" viewBox="0 0 980 270" role="img" aria-labelledby="flow-svg-title flow-svg-desc">
+            <title id="flow-svg-title">Doodle to ASCII technical data flow</title>
+            <desc id="flow-svg-desc">Python serves static files to the browser. The browser drawing canvas holds marks, JavaScript converts cell coverage into trimmed ASCII, then the browser presents and downloads a text file. No application server or external service is used.</desc>
+            <rect class="node" x="12" y="72" width="160" height="126" />
+            <text class="label" x="31" y="108">LOCAL SERVER</text>
+            <text class="small" x="31" y="138">Python stdlib</text>
+            <text class="small" x="31" y="160">serves files only</text>
+
+            <path class="flow" d="M172 135 H218" />
+            <path class="arrow" d="M218 129 L230 135 L218 141 Z" />
+
+            <rect class="node" x="231" y="45" width="250" height="180" />
+            <text class="label" x="251" y="80">BROWSER / EDITOR</text>
+            <text class="small" x="251" y="111">square Canvas 2D</text>
+            <text class="small" x="251" y="135">pen / eraser pixels</text>
+            <text class="small" x="251" y="159">app view and tool state</text>
+            <text class="small" x="251" y="190">all data stays in page</text>
+
+            <path class="flow" d="M481 135 H527" />
+            <path class="arrow" d="M527 129 L539 135 L527 141 Z" />
+
+            <rect class="node" x="540" y="45" width="200" height="180" />
+            <text class="label" x="560" y="80">CONVERTER</text>
+            <text class="small" x="560" y="111">50 x 50 cells</text>
+            <text class="small" x="560" y="135">coverage &gt; 15% = #</text>
+            <text class="small" x="560" y="159">trim empty edges</text>
+            <text class="small" x="560" y="190">max 50 chars / line</text>
+
+            <path class="flow" d="M740 135 H786" />
+            <path class="arrow" d="M786 129 L798 135 L786 141 Z" />
+
+            <rect class="node" x="799" y="72" width="169" height="126" />
+            <text class="label" x="818" y="108">RESULT</text>
+            <text class="small" x="818" y="138">monospace preview</text>
+            <text class="small" x="818" y="160">Blob -&gt; .txt</text>
+          </svg>
+          <p class="flow-text">Python serves files → browser canvas records marks → JavaScript converts a 50 × 50 grid → browser previews and initiates `.txt` download. Drawing data never leaves the page.</p>
+          <p class="caption">The local server sends files; the browser handles the drawing, conversion, and download.</p>
+        </div>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="components-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Components mapped to the PRD</p>
+            <h2 id="components-title">What each piece owns</h2>
+          </div>
+          <span class="tag">No framework</span>
+        </div>
+        <div class="disclosure-list">
+          <details open>
+            <summary>Editor canvas and tools / `src/drawing.js`</summary>
+            <div class="detail-content">
+              <p>Keep a 500 × 500 logical canvas that scales visually to the responsive layout. With 50 analysis columns, each cell is 10 logical pixels wide. The black pen is 3 pixels wide (30% of a cell); the white eraser is 9 pixels wide (90%). Pointer events handle mouse, touch, and stylus input. No tool is selected until the user clicks the pen or eraser.</p>
+              <p>Check the actual current pixels when submitting, so a doodle erased completely is treated as blank. The welcome message prevents drawing until dismissed. Tool buttons stay above the square canvas, with <strong>Submit</strong> below it.</p>
+              <p class="ref">PRD ref: `Welcome and Editor` / `Screens and Layout`</p>
+            </div>
+          </details>
+          <details>
+            <summary>ASCII conversion / `src/ascii.js`</summary>
+            <div class="detail-content">
+              <p>Read the canvas pixels into a 50 × 50 analysis grid. For each cell, measure black-mark coverage; partial antialiased pixels count according to their darkness. Since Canvas channels are 8-bit, subtract half a shade step (`0.5 / 255`) before comparing. Write `#` only when adjusted coverage is above 15%; an exact 15% cell remains blank. A straight pen stroke 30% of a cell wide qualifies. Crop empty rows and columns without distorting the remaining character grid.</p>
+              <p>The text contains `#`, spaces, and line breaks only, with every line no longer than 50 characters. Conversion is deterministic and local; it produces one result.</p>
+              <p class="ref">PRD ref: `Submit and Generate` / `The Core Journey`</p>
+            </div>
+          </details>
+          <details>
+            <summary>Screen flow and download / `src/app.js`</summary>
+            <div class="detail-content">
+              <p>Track the current view, welcome-message visibility, active tool, and generated string in memory. On submit, reject blank input; otherwise show “Generating art :)”, allow the browser to paint that view, then convert. If conversion fails, return to the editor with the drawing intact and show “could not generate art. please try again”.</p>
+              <p>The result view uses a monospace preview. At wider widths, the message box sits left of the art with <strong>Download</strong> below; at phone widths, stack the message before the art.</p>
+              <p>For download, create a text Blob and temporary object URL, activate a link named `ascii-doodle.txt`, then release the URL. Show “image downloaded” when the app initiates it. If preparing or initiating the file throws a detectable error, show “download failed. please try again”. The page cannot know if the browser later blocks or cancels the save.</p>
+              <p class="ref">PRD ref: `The Core Journey` / `Result and Download` / `States and Boundaries`</p>
+            </div>
+          </details>
+          <details>
+            <summary>Data and what resets</summary>
+            <div class="detail-content">
+              <p>The canvas is the drawing source. Tool selection, page view, and result text are also kept only in the open page. Refreshing or closing the tab clears everything; there is no save or restore behavior in this proof of concept.</p>
+              <p class="ref">PRD ref: `The Core Journey` / `The POC Boundary`</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="run-title">
+        <p class="eyebrow">Local demo / no install</p>
+        <h2 id="run-title">Run it on this computer</h2>
+        <div class="runbox">
+          <div>
+            <p>From the project root, start Python's built-in file server:</p>
+            <pre>python -m http.server 8000</pre>
+            <p>Then open <a href="http://localhost:8000/">http://localhost:8000/</a>. Stop the server with <code>Ctrl+C</code>.</p>
+          </div>
+          <p class="run-meta">Python 3.13.9<br>No packages or API keys<br>Deployment optional</p>
+        </div>
+        <p class="caption">Submission still needs a short demo video and a public GitHub repository; a local app is enough for the recording.</p>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="tree-title">
+        <p class="eyebrow">Build map</p>
+        <h2 id="tree-title">Planned files</h2>
+        <pre class="tree">project/
+├── index.html             # editor, welcome, loading, and result views
+├── styles.css             # monochrome responsive layout
+├── src/
+│   ├── app.js              # views, validation, failure messages, download
+│   ├── drawing.js          # square canvas and pointer-based tools
+│   └── ascii.js            # coverage grid, trim, and text output
+├── README.md               # setup and demo instructions
+├── agent/                  # existing Devpost Learn skills
+└── devpost/                # profile and planning docs</pre>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="verify-title">
+        <p class="eyebrow">What to verify during build</p>
+        <h2 id="verify-title">Observable checks</h2>
+        <div class="cols">
+          <div class="col">
+            <h3>Editor and conversion</h3>
+            <ul>
+              <li>At phone and desktop widths, the canvas remains square and controls stay outside it.</li>
+              <li>The welcome message blocks drawing; drawing starts only after selecting the pen.</li>
+              <li>A line crossing a cell qualifies at the 15% rule; a cell at or below 15% remains blank.</li>
+              <li>Erasing every mark makes **Submit** show “canvas cannot be blank”.</li>
+            </ul>
+          </div>
+          <div class="col">
+            <h3>Result and take-away</h3>
+            <ul>
+              <li>Generated art uses `#` and spaces only, preserves the shape, trims empty margins, and stays within 50 characters per line.</li>
+              <li>Generation errors return to the editor with the doodle preserved and the retry message visible.</li>
+              <li>The `.txt` contains the same characters and line breaks as the preview.</li>
+              <li>App-side download errors show the error pop-up; browser cancellation is not reported as confirmed failure.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="simplify-title">
+        <p class="eyebrow">Boundary and references</p>
+        <h2 id="simplify-title">What stays out</h2>
+        <p class="plain">No framework, backend, login, storage, image import, JPG/PNG export, extra tools, adjustable color palette, multiple output versions, or clipboard copy. The app is local and self-contained to protect the short proof-of-concept path.</p>
+        <div class="doclinks">
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/getContext">Canvas 2D</a>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData">Pixel reading</a>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Blob">Text Blob</a>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLAnchorElement/download">Browser download</a>
+          <a href="https://docs.python.org/3/library/http.server.html">Python local server</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>SPEC 03 / DOODLE TO ASCII</span>
+      <span>Next: ordered build steps</span>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Doodle to ASCII - Product Requirements</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #171717;
+      background: #f5f5f2;
+      --ink: #171717;
+      --paper: #fff;
+      --line: #b9b9b4;
+      --soft: #e9e9e5;
+      --muted: #555550;
+      --mono: "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background-color: #f5f5f2;
+      background-image: radial-gradient(#d7d7d1 0.65px, transparent 0.65px);
+      background-size: 13px 13px;
+    }
+
+    .page {
+      width: min(100% - 36px, 1060px);
+      margin: 28px auto 64px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--ink);
+      font: 12px var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .status { display: inline-flex; align-items: center; gap: 8px; }
+    .status::before { content: ""; width: 9px; height: 9px; display: inline-block; background: var(--ink); }
+    main { padding: clamp(22px, 5vw, 52px); }
+    .eyebrow { margin: 0 0 12px; color: var(--muted); font: 12px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    h1 {
+      max-width: 780px;
+      margin: 0;
+      font-size: clamp(38px, 7vw, 66px);
+      line-height: 0.98;
+      font-weight: 500;
+    }
+
+    .dek { max-width: 690px; margin: 18px 0 0; font-size: 19px; line-height: 1.5; }
+    .rule { height: 1px; margin: 30px 0; background: var(--ink); }
+    h2 { margin: 0 0 16px; font-size: 24px; font-weight: 500; }
+    h3 { margin: 0 0 8px; font-size: 18px; font-weight: 500; }
+    p { margin: 0; line-height: 1.55; }
+    .source { color: var(--muted); font: 11px/1.6 var(--mono); }
+    .source + section, .source + p { margin-top: 8px; }
+
+    .diagram-wrap { padding: 14px; border: 1px solid var(--ink); background: #fbfbf9; }
+    .diagram { display: block; width: 100%; height: auto; }
+    .diagram text { fill: var(--ink); }
+    .diagram .label { font: 14px var(--mono); }
+    .diagram .small { font: 12px var(--mono); fill: var(--muted); }
+    .diagram .node { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+    .diagram .flow { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+    .diagram .arrow { fill: var(--ink); }
+    .journey-text { display: none; }
+    .caption { margin-top: 10px; color: var(--muted); font: 12px var(--mono); }
+
+    .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 14px; }
+    .section-head .eyebrow { margin-bottom: 6px; }
+    .section-head h2 { margin: 0; }
+    .disclosure-list { border-top: 1px solid var(--ink); }
+    details { border-bottom: 1px solid var(--ink); }
+    summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 17px 0;
+      cursor: pointer;
+      list-style: none;
+      font-size: 20px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; font: 22px var(--mono); }
+    details[open] summary::after { content: "-"; }
+    summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+    .detail-content { padding: 0 0 19px; color: #30302d; line-height: 1.55; }
+    .detail-content p + p { margin-top: 10px; }
+    .detail-content ul { margin: 10px 0 0; padding-left: 22px; }
+    .detail-content li + li { margin-top: 7px; }
+    .quote { margin: 10px 0; padding: 12px 16px; border-left: 3px solid var(--ink); background: #f3f3ef; }
+    .criteria { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+    .criteria-title { margin-bottom: 6px; font: 11px var(--mono); text-transform: uppercase; }
+    .criteria ul { margin-top: 0; }
+    .now-later { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    .boundary { padding: 16px 0; border-top: 1px solid var(--line); }
+    .boundary p + p { margin-top: 8px; }
+    .pill { display: inline-block; padding: 3px 7px; border: 1px solid var(--line); font: 10px var(--mono); text-transform: uppercase; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 13px 20px;
+      border-top: 1px solid var(--ink);
+      color: var(--muted);
+      font: 11px var(--mono);
+    }
+
+    @media (max-width: 650px) {
+      .page { width: min(100% - 22px, 1060px); margin: 12px auto 28px; box-shadow: 4px 4px 0 var(--ink); }
+      header { padding: 12px; font-size: 10px; }
+      main { padding: 24px 18px; }
+      .diagram { display: none; }
+      .journey-text { display: block; font: 12px/1.7 var(--mono); }
+      .now-later { grid-template-columns: 1fr; gap: 0; }
+      footer { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <span>Devpost Learn / Product Requirements</span>
+      <span class="status">Approved</span>
+    </header>
+
+    <main>
+      <p class="eyebrow">Product definition / 02</p>
+      <h1>Doodle to ASCII</h1>
+      <p class="dek">A simple doodle editor for younger people to make handmade ASCII art for texts or digital journals.</p>
+      <p class="source">Built from approved scope / one drawing-to-download journey</p>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="journey-title">
+        <p class="eyebrow">The core journey</p>
+        <h2 id="journey-title">From first mark to text file</h2>
+        <div class="diagram-wrap">
+          <svg class="diagram" viewBox="0 0 900 226" role="img" aria-labelledby="journey-svg-title journey-svg-desc">
+            <title id="journey-svg-title">Doodle to ASCII user journey</title>
+            <desc id="journey-svg-desc">Dismiss the welcome message, draw with the selected pen, submit a nonblank canvas, wait on the generating page, then download one shape-preserving ASCII image made only with hash characters.</desc>
+            <rect class="node" x="12" y="42" width="246" height="130" />
+            <text class="label" x="32" y="76">01 / EDITOR</text>
+            <text class="small" x="32" y="106">dismiss welcome</text>
+            <text class="small" x="32" y="128">select pen, draw, submit</text>
+            <text class="small" x="32" y="150">blank? show error here</text>
+
+            <path class="flow" d="M258 106 H314" />
+            <path class="arrow" d="M314 100 L326 106 L314 112 Z" />
+
+            <rect class="node" x="327" y="42" width="226" height="130" />
+            <text class="label" x="348" y="76">02 / GENERATING</text>
+            <text class="small" x="348" y="106">"Generating art :)"</text>
+            <text class="small" x="348" y="128">wait for one result</text>
+
+            <path class="flow" d="M553 106 H609" />
+            <path class="arrow" d="M609 100 L621 106 L609 112 Z" />
+
+            <rect class="node" x="622" y="42" width="266" height="130" />
+            <text class="label" x="642" y="76">03 / RESULT</text>
+            <text class="small" x="642" y="106">message left / art right</text>
+            <text class="small" x="642" y="128">download .txt, show success</text>
+            <text class="small" x="642" y="150">art uses # only</text>
+
+            <text class="small" x="12" y="208">START</text>
+            <text class="small" x="327" y="208">TRANSFORM</text>
+            <text class="small" x="622" y="208">TAKE AWAY</text>
+          </svg>
+          <p class="journey-text">Editor: dismiss welcome → click pen → draw → submit. Blank submit stays here with an error. Otherwise: generating → one # image beside the message → download .txt → confirmation.</p>
+          <p class="caption">Each stage has a defined screen, action, and visible result.</p>
+        </div>
+      </section>
+
+      <div class="rule"></div>
+
+      <section aria-labelledby="screens-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Behavior and acceptance checks</p>
+            <h2 id="screens-title">Screen by screen</h2>
+          </div>
+          <span class="pill">One PoC flow</span>
+        </div>
+        <div class="disclosure-list">
+          <details open>
+            <summary>01 / Welcome and editor</summary>
+            <div class="detail-content">
+              <p>On first entry, the message appears centered over the canvas:</p>
+              <p class="quote">“Welcome to ASCII doodler! Start drawing in this editor, and when you are done, click submit to generate your image.”</p>
+                <p>The drawing space is square and responsive to fit phone and desktop browser viewports. The pen and eraser icons sit at the top of the page, outside the drawing space; the <strong>Submit</strong> button sits at the bottom, also outside it. The user must dismiss the welcome message before drawing. Afterward neither tool is active. The user clicks the pen icon to begin, or clicks the eraser icon to erase. The pen draws black at 30% of a grid cell's width; the eraser is 90% of a cell's width. The active button is white and the inactive button is light grey.</p>
+              <div class="criteria">
+                <p class="criteria-title">Checkable criteria</p>
+                <ul>
+                  <li>The square drawing space fits phone and desktop browser viewports; tool icons remain above it and <strong>Submit</strong> remains below it, all outside the drawing space.</li>
+                  <li>The welcome message is centered over the canvas and blocks drawing until dismissed.</li>
+                  <li>The canvas accepts pen marks only after the user activates the pen.</li>
+                  <li>Clicking either icon activates that tool; the selected button is white and the other is light grey.</li>
+                  <li>The pen width is 30% of a grid cell; the eraser width is 90%.</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+          <details>
+            <summary>02 / Submit and generate</summary>
+            <div class="detail-content">
+                            <p>Submitting an empty canvas shows “canvas cannot be blank” in a pop-up and keeps the user on the editor. Submitting a nonblank canvas changes the screen to a loading page displaying “Generating art :)”. Once ready, exactly one result appears. A grid cell becomes `#` only if pen-mark coverage exceeds 15%; the result uses no other visible art character, preserves the doodle's basic shape, and has no more than 50 characters per line.</p>
+                                          <p>Submitting an empty canvas shows “canvas cannot be blank” in a pop-up and keeps the user on the editor. Submitting a nonblank canvas changes the screen to a loading page displaying “Generating art :)”. Once ready, exactly one result appears. A grid cell becomes `#` only if pen-mark coverage exceeds 15%; the result uses no other visible art character, preserves the doodle's basic shape, and has no more than 50 characters per line. If generation fails, the app returns to the editor with the doodle intact and shows “could not generate art. please try again”.</p>
+              <div class="criteria">
+                <p class="criteria-title">Checkable criteria</p>
+                <ul>
+                  <li>A blank submission shows the exact error text and does not open the loading or result page.</li>
+                  <li>A nonblank submission shows the loading message before the result.</li>
+                                  <li>The finished output uses only `#`, preserves the doodle's basic shape, is at most 50 characters wide per line, and marks a cell only when pen coverage exceeds 15%.</li>
+                                  <li>If generation fails, the app returns to the editor, preserves the doodle, and shows “could not generate art. please try again”.</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+          <details>
+            <summary>03 / Result and download</summary>
+            <div class="detail-content">
+              <p>The result and message box sit in the middle of the page, with the message box to the left of the ASCII image. The message reads “Your ASCII doodle has been generated.” A <strong>Download</strong> button appears below it.</p>
+              <p>Clicking <strong>Download</strong> initiates the `.txt` download, then the app shows “image downloaded”. The text file contains the generated ASCII image. If the app cannot prepare or initiate the download, it shows “download failed. please try again”. A local browser page cannot reliably detect if the browser later blocks or cancels the download.</p>
+              <div class="criteria">
+                <p class="criteria-title">Checkable criteria</p>
+                <ul>
+                  <li>The generated art is to the right of the exact result message, with <strong>Download</strong> below the message box.</li>
+                  <li>Clicking <strong>Download</strong> starts a `.txt` download containing the art and displays “image downloaded”.</li>
+                  <li>Clicking <strong>Download</strong> initiates a `.txt` download containing the art and displays “image downloaded”; this confirms initiation, not that the browser saved it.</li>
+                  <li>If the app detects an error preparing or initiating the file, it displays “download failed. please try again”. Later browser cancellation or blocking may not be detectable.</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+          <details>
+            <summary>States, scope, and remaining questions</summary>
+            <div class="detail-content">
+              <div class="now-later">
+                <div>
+                  <h3>In this proof of concept</h3>
+                  <ul>
+                                        <li>Welcome overlay, 30%-cell-width black pen, 90%-cell-width eraser, one `#` result with a 15% coverage threshold and 50-character line limit, and `.txt` download.</li>
+                    <li>Blank-canvas error, loading message, and download confirmation.</li>
+                    <li>A one-minute demo of drawing, generating, and downloading.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3>Deferred</h3>
+                  <ul>
+                    <li>Image import and JPG/PNG export.</li>
+                    <li>Shapes, fill, other colors, and adjustable tool sizes.</li>
+                    <li>Multiple render levels and clipboard copy.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="boundary">
+                <h3>Product direction</h3>
+                <p>The interface stays black and white, simple, homemade, and reminiscent of early drawing games. The shared art sample guides the output only; the app is not modeled on its source website. The POC uses `#` only and does not reproduce the sample character-for-character.</p>
+              </div>
+              <div class="boundary">
+                <h3>Generation failure</h3>
+                <p>If generating art fails, return the user to the editor with their doodle intact and show “could not generate art. please try again”.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>PRD 02 / DOODLE TO ASCII</span>
+      <span>Finish line: draw → generate → download</span>
+    </footer>
+  </div>
+</body>
+</html>

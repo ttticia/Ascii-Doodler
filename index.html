@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Draw a doodle and turn it into ASCII art.">
+  <title>ASCII Doodler</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <div class="page-frame">
+    <header class="masthead">
+      <a class="wordmark" href="./" aria-label="ASCII Doodler home">ASCII DOODLER</a>
+    </header>
+
+    <main>
+      <section id="editor-view" class="view" aria-labelledby="editor-title">
+        <div class="editor-heading">
+          <div>
+            <h1 id="editor-title">Doodle editor</h1>
+          </div>
+          <p class="editor-note">Click the pen button to start drawing</p>
+        </div>
+
+        <div class="tool-row" role="group" aria-label="Drawing tools">
+          <button id="pen-tool" class="tool-button" type="button" aria-label="Pen tool" aria-pressed="false" title="Pen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.2-1 10.9-10.9a2.3 2.3 0 0 0-3.2-3.2L5 15.8 4 20Z"/><path d="m14.8 6.4 3.1 3.1M4.4 17.3l2.3 2.3"/></svg>
+            <span>Pen</span>
+          </button>
+          <button id="eraser-tool" class="tool-button" type="button" aria-label="Eraser tool" aria-pressed="false" title="Eraser">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3.8 14.4 8.7-9a2 2 0 0 1 2.9 0l4.8 4.7a2 2 0 0 1 0 2.9l-6.5 6.6H8.5l-4.7-4.7a2 2 0 0 1 0-2.9Z"/><path d="m8.2 10 6.4 6.4M14 19.6h6.2"/></svg>
+            <span>Eraser</span>
+          </button>
+          <p id="tool-hint" class="tool-hint">Choose a tool to begin.</p>
+        </div>
+
+        <div class="drawing-stage" id="drawing-stage">
+          <canvas id="drawing-canvas" width="500" height="500" aria-label="Square drawing canvas"></canvas>
+          <div id="welcome-overlay" class="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-copy">
+            <p class="eyebrow">Welcome / ASCII Doodler</p>
+            <h2 id="welcome-title">new drawing</h2>
+            <p id="welcome-copy">Welcome to ASCII doodler! Start drawing in this editor, and when you are done, click submit to generate your image.</p>
+            <button id="dismiss-welcome" class="button button-dark" type="button">Start drawing</button>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button id="submit-button" class="button button-dark" type="button">Submit <span aria-hidden="true">-&gt;</span></button>
+        </div>
+        <p id="editor-message" class="live-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="loading-view" class="view message-view" aria-live="polite" hidden>
+        <p class="eyebrow">Please wait / 02</p>
+        <h1>Generating art :)</h1>
+        <p class="message-copy">Your marks are finding their shape.</p>
+        <span class="loading-rule" aria-hidden="true"></span>
+      </section>
+
+      <section id="result-view" class="view result-view" aria-labelledby="result-title" hidden>
+        <div class="result-layout">
+          <div class="result-copy">
+            <div class="result-message">
+              <p id="result-title">Your ASCII doodle has been generated.</p>
+            </div>
+            <button id="restart-button" class="button button-dark" type="button">Restart</button>
+          </div>
+          <pre id="ascii-art" class="ascii-art" aria-label="Generated ASCII doodle"></pre>
+        </div>
+      </section>
+    </main>
+
+  </div>
+  <noscript>This drawing app needs JavaScript enabled in your browser.</noscript>
+</body>
+</html>
